@@ -15,7 +15,7 @@ export default function UserList() {
   useEffect(() => {
     async function fetchUsers(): Promise<void> {
       try {
-        const data = await fetchApi("/users");
+        const data:User[] = await fetchApi("/users");
         setUsers(data); 
       } catch (err) {
          setError(err instanceof Error ? err.message : String(err));

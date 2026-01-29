@@ -1,55 +1,71 @@
+import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 /**
- * 공통 API
- * @param {string} endpoint // 하위 주소
- * @param {object} options  // fetch 옵션 (method, headers, body, ...)
+ * API 에러 응답 형식
  */
-
-// Api Error 타입 정의
-interface ApiErr extends Error {
-  status?: number;
-  data?: any;
+interface ErrorResponse {
+  message?: string;
+  [key: string]: unknown;
 }
 
-// fetch options 타입 정의
-interface FetchOpts extends RequestInit {
-  headers?: Record<string, string>;
-}
+/**
+ * Axios
+ */
+const apiClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 3000,
+});
 
-
-export async function fetchApi(endpoint : string, options: FetchOpts = {}) : Promise<any> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    // Authorization
-    // "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-  };
-
-  const config = {
-    headers: { ...headers, ...(options.headers || {}) },
-    ...options,
-  };
-
-  /* JSON 타입 확인 */
-  if (config.body && typeof config.body === "object") {
-    config.body = JSON.stringify(config.body);
+/**
+ * 요청 인터셉터
+ */
+apiClient.interceptors.request.use(
+  (config) => {
+    // Authorization 헤더 추가 (필요시)
+    // const token = localStorage.getItem("token");
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    // }
+    return config;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
   }
+);
 
+/**
+ * 공통 API 함수
+ * @param endpoint - API 엔드포인트
+ * @param options - Axios 요청 옵션
+ * @returns API 응답 데이터
+ */
+export async function fetchApi<T = unknown>(
+  endpoint: string, 
+  options: AxiosRequestConfig = {}
+): Promise<T> {
   try {
-    const response = await fetch(BASE_URL + endpoint, config);
+    const response: AxiosResponse<T> = await apiClient({
+      url: endpoint,
+      ...options,
+    });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      const err: ApiErr = new Error(errData.message || "API 요청 실패");
-      err.status = response.status;
-      err.data = errData;
-      throw err;
+    return response.data;
+    
+  } catch (error) {
+    if (axios.isAxiosError<ErrorResponse>(error)) {
+      
+      
+      console.error("[API Error]", error.response?.data?.message || error.message || "API 요청 실패");
+      throw error;
     }
-
-    // JSON 응답 반환
-    return await response.json();
-  } catch (e) {
-    console.error("[API Error]", e);
-    throw e;
+    
+    // Axios 에러가 아닌 경우
+    console.error("[Unexpected Error]", error);
+    throw error;
   }
 }
