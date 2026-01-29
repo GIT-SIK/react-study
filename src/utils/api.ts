@@ -5,8 +5,21 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
  * @param {string} endpoint // 하위 주소
  * @param {object} options  // fetch 옵션 (method, headers, body, ...)
  */
-export async function fetchApi(endpoint, options = {}) {
-  const headers = {
+
+// Api Error 타입 정의
+interface ApiErr extends Error {
+  status?: number;
+  data?: any;
+}
+
+// fetch options 타입 정의
+interface FetchOpts extends RequestInit {
+  headers?: Record<string, string>;
+}
+
+
+export async function fetchApi(endpoint : string, options: FetchOpts = {}) : Promise<any> {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     // Authorization
     // "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
@@ -27,7 +40,7 @@ export async function fetchApi(endpoint, options = {}) {
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      const err = new Error(errData.message || "API 요청 실패");
+      const err: ApiErr = new Error(errData.message || "API 요청 실패");
       err.status = response.status;
       err.data = errData;
       throw err;

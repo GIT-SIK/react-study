@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { fetchApi } from "../utils/api";
 
+interface User {
+  id : string,
+  name : string,
+
+}
+
 export default function UserList() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<String | null> (null);
 
   useEffect(() => {
-    async function fetchUsers() {
+    async function fetchUsers(): Promise<void> {
       try {
         const data = await fetchApi("/users");
         setUsers(data); 
       } catch (err) {
-        setError(err.message);
+         setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }

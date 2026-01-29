@@ -12,26 +12,26 @@ export default function ExPrev() {
     const [items, setItems] = useState([1,2]); 
 
     // ===== count =====
-    const handleCountGood = () => {
+    const handleCountGood = ():void => {
     setCount(prev => prev + 1);  
     setCount(prev => prev + 1);  
     setCount(prev => prev + 1);  
     }
 
 
-    const handleCountBad = () => {
+    const handleCountBad = ():void => {
     setCount(count + 1);  
     setCount(count + 1);  
     setCount(count + 1);  
     }
     
     // ===== items (배열) =====
-    const handleAddGood = () => {
+    const handleAddGood = ():void => {
     setItems(prev => [...prev, 3]);
     setItems(prev => [...prev, 4]);
     }
 
-    const handleAddBad = () => {
+    const handleAddBad = ():void => {
         setItems([...items, 3]);
         setItems([...items, 4]);
     }
